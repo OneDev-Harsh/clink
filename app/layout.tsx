@@ -6,7 +6,6 @@ import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
 import { cn } from "@/lib/utils"
 import { Toaster } from "@/components/ui/sonner"
-import { AuthButtons } from "@/components/auth-buttons"
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" })
 
@@ -33,14 +32,6 @@ export default function RootLayout({
     >
       <body>
         <ClerkProvider appearance={{ theme: shadcn }}>
-          <header className="flex items-center justify-end gap-2 p-4">
-            <Show when="signed-out">
-              <AuthButtons />
-            </Show>
-            <Show when="signed-in">
-              <UserButton />
-            </Show>
-          </header>
           <ThemeProvider>
             {children}
             <Toaster />
