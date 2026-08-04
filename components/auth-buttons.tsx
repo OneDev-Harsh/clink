@@ -1,17 +1,17 @@
 "use client"
 
-import { SignInButton, SignUpButton } from "@clerk/nextjs"
-import { buttonVariants } from "@/components/ui/button"
+import Link from "next/link"
+import { Button } from "@/components/ui/button"
 
 export function AuthButtons() {
   return (
     <>
-      <SignInButton mode="modal" className={buttonVariants({ variant: "outline" })}>
-        Sign In
-      </SignInButton>
-      <SignUpButton mode="modal" className={buttonVariants({ variant: "default" })}>
-        Sign Up
-      </SignUpButton>
+      <Button variant="outline" asChild>
+        <Link href="/sign-in">Sign In</Link>
+      </Button>
+      <Button asChild>
+        <Link href="/sign-up">Sign Up</Link>
+      </Button>
     </>
   )
 }
