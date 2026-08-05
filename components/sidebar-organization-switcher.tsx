@@ -18,7 +18,9 @@ export function SidebarOrganizationSwitcher() {
                   justifyContent: "center",
                   width: "100%",
                 },
-                organizationPreviewTextContainer: { display: "none" },
+                organizationPreviewTextContainer__organizationSwitcherTrigger: {
+                  display: "none",
+                },
                 organizationSwitcherTriggerIcon: { display: "none" },
               },
             }

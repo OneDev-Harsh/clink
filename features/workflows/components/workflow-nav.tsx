@@ -1,5 +1,7 @@
 "use client"
 
+import Link from "next/link"
+import { usePathname } from "next/navigation"
 import { Plus, WorkflowIcon } from "lucide-react"
 
 import {
@@ -18,6 +20,27 @@ import {
 } from "@/components/ui/sidebar"
 import type { Workflow } from "@/lib/db/schema"
 import { generateSlug } from "@/features/workflows/components/lib/generate-slug"
+
+function WorkflowNavItem({
+  workflow,
+  tooltip,
+}: {
+  workflow: Workflow
+  tooltip?: string
+}) {
+  const pathname = usePathname()
+  const isActive = pathname === `/workflows/${workflow.id}`
+
+  return (
+    <SidebarMenuItem>
+      <SidebarMenuButton asChild isActive={isActive} tooltip={tooltip}>
+        <Link href={`/workflows/${workflow.id}`}>
+          <span>{workflow.name}</span>
+        </Link>
+      </SidebarMenuButton>
+    </SidebarMenuItem>
+  )
+}
 
 export function WorkflowNav({
   workflows,
@@ -39,11 +62,11 @@ export function WorkflowNav({
         <SidebarGroupContent>
           <SidebarMenu>
             {workflows.map((workflow) => (
-              <SidebarMenuItem key={workflow.id}>
-                <SidebarMenuButton tooltip={workflow.name}>
-                  <span>{workflow.name}</span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
+              <WorkflowNavItem
+                key={workflow.id}
+                workflow={workflow}
+                tooltip={workflow.name}
+              />
             ))}
             <SidebarMenuItem>
               <SidebarMenuButton
@@ -75,11 +98,10 @@ export function WorkflowNav({
               <PopoverContent side="right" align="start">
                 <SidebarMenu>
                   {workflows.map((workflow) => (
-                    <SidebarMenuItem key={workflow.id}>
-                      <SidebarMenuButton>
-                        <span>{workflow.name}</span>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
+                    <WorkflowNavItem
+                      key={workflow.id}
+                      workflow={workflow}
+                    />
                   ))}
                   <SidebarMenuItem>
                     <SidebarMenuButton
