@@ -8,9 +8,9 @@ import {
 
 export const workflows = pgTable("workflows", {
   id: uuid("id").primaryKey().defaultRandom(),
+  orgId: text("org_id").notNull(),
   name: text("name").notNull(),
-  description: text("description"),
-  definition: jsonb("definition"),
+  graph: jsonb("graph"),
   createdAt: timestamp("created_at", { withTimezone: true })
     .defaultNow()
     .notNull(),
@@ -18,3 +18,5 @@ export const workflows = pgTable("workflows", {
     .defaultNow()
     .notNull(),
 });
+
+export type Workflow  = typeof workflows.$inferSelect
