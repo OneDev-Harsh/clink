@@ -3,8 +3,10 @@
 import {redirect} from "next/navigation";
 import {revalidatePath} from "next/cache";
 import {auth} from "@clerk/nextjs/server";
+import {tasks} from "@trigger.dev/sdk";
 
 import {createWorkflow} from "@/features/workflows/data";
+import type {helloWorldTask} from "@/trigger/example";
 
 export async function createWorkflowAction(name: string) {
     const {orgId} = await auth();
@@ -14,4 +16,12 @@ export async function createWorkflowAction(name: string) {
 
     revalidatePath("/workflows", "layout");
     redirect(`/workflows/${workflow.id}`);
+}
+
+export async function runWorkflowAction() {
+    const handle = await tasks.trigger<typeof helloWorldTask>("hello-world", {
+        message: "Hello from the Run button!",
+    });
+
+    return {runId: handle.id, publicAccessToken: handle.publicAccessToken};
 }
