@@ -1,3 +1,5 @@
+import { ReactFlowProvider } from "@xyflow/react"
+
 import { WorkflowShell } from "@/features/workflows/components/workflow-shell"
 
 export default async function Page({
@@ -9,7 +11,9 @@ export default async function Page({
 
   return (
     <div className="flex h-full min-h-svh flex-col">
-      <WorkflowShell workflowId={id} />
+      <ReactFlowProvider>
+        <WorkflowShell workflowId={id} />
+      </ReactFlowProvider>
     </div>
   )
 }

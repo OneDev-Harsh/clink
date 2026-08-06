@@ -1,7 +1,9 @@
 "use client"
 
 import { useState } from "react"
+import { useReactFlow, useStoreApi } from "@xyflow/react"
 import { MoreHorizontal, Play, Trash2 } from "lucide-react"
+import { toast } from "sonner"
 
 import {
   Accordion,
@@ -158,9 +160,42 @@ const definitions = Object.values(nodeRegistry)
 
 // The Toolbar tab: a button per node type that adds it to the canvas.
 function Palette() {
+  const { screenToFlowPosition, addNodes } = useReactFlow<StepNodeType>()
+  const storeApi = useStoreApi<StepNodeType>()
+
   const add = (type: NodeType) => {
-    // TODO: add the clicked node to the canvas (one trigger max).
-    void type
+    const def = nodeRegistry[type]
+    const { nodes, domNode } = storeApi.getState()
+
+    if (
+      def.kind === "trigger" &&
+      nodes.some((node) => node.data?.kind === "trigger")
+    ) {
+      toast.error("Only one trigger node is allowed")
+      return
+    }
+
+    if (!domNode) return
+
+    const rect = domNode.getBoundingClientRect()
+    const position = screenToFlowPosition({
+      x: rect.left + rect.width / 2,
+      y: rect.top + rect.height / 2,
+    })
+
+    const count = nodes.filter((node) => node.data?.type === type).length
+
+    addNodes({
+      id: crypto.randomUUID(),
+      type: "step",
+      position,
+      data: {
+        type,
+        kind: def.kind,
+        title: `${def.label} ${count + 1}`,
+        values: {},
+      },
+    })
   }
 
   return (
