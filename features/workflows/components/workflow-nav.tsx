@@ -19,7 +19,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar"
 import type { Workflow } from "@/lib/db/schema"
-import { generateSlug } from "@/features/workflows/components/lib/generate-slug"
+import { generateSlug } from "@/features/workflows/lib/generate-slug"
 
 function WorkflowNavItem({
   workflow,

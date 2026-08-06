@@ -5,7 +5,7 @@ import { useRealtimeRun } from "@trigger.dev/react-hooks"
 import { Loader2, Play } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
-import { runWorkflowAction } from "@/features/workflows/components/lib/actions"
+import { runWorkflowAction } from "@/features/workflows/lib/actions"
 import type { helloWorldTask } from "@/trigger/example"
 
 function RunStatus({

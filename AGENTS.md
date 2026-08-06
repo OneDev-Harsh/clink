@@ -4,6 +4,13 @@
 This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
 <!-- END:nextjs-agent-rules -->
 
+# React Flow
+
+React Flow (the `@xyflow/react` package) is a fast-moving library — do not rely on
+training data for its API, components, or usage. When writing or changing React Flow
+code, search https://reactflow.dev/llms.txt for the relevant API, component, or usage
+before implementing.
+
 # Database types
 
 Derive database types from the Drizzle schema — never hand-write custom or partial

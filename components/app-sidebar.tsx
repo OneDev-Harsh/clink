@@ -9,7 +9,7 @@ import {
   SidebarHeader,
 } from "@/components/ui/sidebar"
 import { listWorkflows } from "@/features/workflows/data"
-import { createWorkflowAction } from "@/features/workflows/components/lib/actions"
+import { createWorkflowAction } from "@/features/workflows/lib/actions"
 import { WorkflowNav } from "@/features/workflows/components/workflow-nav"
 
 export async function AppSidebar() {
