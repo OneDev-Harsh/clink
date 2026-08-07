@@ -54,4 +54,8 @@ export type StepNodeData = {
   values: Record<string, string>
 }
 
+export type ActionNodeType = {
+  [K in NodeType]: (typeof nodeRegistry)[K]["kind"] extends "action" ? K : never
+}[NodeType]
+
 export type StepNodeType = Node<StepNodeData, "step">
