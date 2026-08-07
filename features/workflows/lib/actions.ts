@@ -5,7 +5,7 @@ import {revalidatePath} from "next/cache";
 import {auth} from "@clerk/nextjs/server";
 import {tasks} from "@trigger.dev/sdk";
 
-import {createWorkflow} from "@/features/workflows/data";
+import {createWorkflow, deleteWorkflow} from "@/features/workflows/data";
 import type {helloWorldTask} from "@/trigger/example";
 
 export async function createWorkflowAction(name: string) {
@@ -16,6 +16,17 @@ export async function createWorkflowAction(name: string) {
 
     revalidatePath("/workflows", "layout");
     redirect(`/workflows/${workflow.id}`);
+}
+
+export async function deleteWorkflowAction(workflowId: string) {
+    const {orgId} = await auth();
+    if (!orgId) throw new Error("No active organization");
+
+    const [deleted] = await deleteWorkflow(orgId, workflowId);
+    if (!deleted) throw new Error("Workflow not found");
+
+    revalidatePath("/", "layout");
+    redirect("/");
 }
 
 export async function runWorkflowAction() {

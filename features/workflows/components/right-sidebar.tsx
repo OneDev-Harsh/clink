@@ -25,6 +25,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Textarea } from "@/components/ui/textarea"
 import { cn } from "@/lib/utils"
 
+import { deleteWorkflowAction } from "@/features/workflows/lib/actions"
+
 import {
   nodeRegistry,
   type NodeDefinition,
@@ -254,7 +256,7 @@ function Palette() {
 // ---------------------------------------------------------------------------
 
 // The "..." menu for workflow-level actions.
-function ActionsMenu() {
+function ActionsMenu({ workflowId }: { workflowId: string }) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -267,7 +269,7 @@ function ActionsMenu() {
           variant="destructive"
           className="text-xs [&_svg:not([class*='size-'])]:size-3.5"
           onSelect={() => {
-            // TODO: delete the workflow, then navigate away.
+            deleteWorkflowAction(workflowId)
           }}
         >
           <Trash2 />
@@ -298,7 +300,7 @@ function RunButton() {
 // The sidebar itself — header on top, then the Toolbar / Editor tabs.
 // ---------------------------------------------------------------------------
 
-export function RightSidebar() {
+export function RightSidebar({ workflowId }: { workflowId: string }) {
   const [tab, setTab] = useState("toolbar")
 
   // TODO: read the currently selected node from React Flow.
@@ -321,7 +323,7 @@ export function RightSidebar() {
     >
       <Tabs value={tab} onValueChange={setTab} className="size-full gap-0">
         <div className="flex items-center justify-between border-b border-border p-2">
-          <ActionsMenu />
+          <ActionsMenu workflowId={workflowId} />
           <RunButton />
         </div>
         <TabsList className="m-2 w-fit bg-background">
