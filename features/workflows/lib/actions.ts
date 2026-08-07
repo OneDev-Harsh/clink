@@ -6,7 +6,6 @@ import {auth} from "@clerk/nextjs/server";
 import {runs, tasks} from "@trigger.dev/sdk";
 
 import {createWorkflow, deleteWorkflow, saveWorkflowGraph} from "@/features/workflows/data";
-import type {helloWorldTask} from "@/trigger/example";
 import type {runWorkflowTask} from "@/features/workflows/tasks/run-workflow";
 import {type WorkflowGraph} from "@/lib/db/schema";
 
