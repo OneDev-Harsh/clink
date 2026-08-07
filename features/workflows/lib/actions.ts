@@ -7,6 +7,7 @@ import {runs, tasks} from "@trigger.dev/sdk";
 
 import {createWorkflow, deleteWorkflow, saveWorkflowGraph} from "@/features/workflows/data";
 import type {helloWorldTask} from "@/trigger/example";
+import type {runWorkflowTask} from "@/features/workflows/tasks/run-workflow";
 import {type WorkflowGraph} from "@/lib/db/schema";
 
 export async function createWorkflowAction(name: string) {
@@ -43,9 +44,14 @@ export async function runWorkflowAction({
 
     await saveWorkflowGraph({orgId, id, graph});
 
-    const handle = await tasks.trigger<typeof helloWorldTask>("hello-world", {
-        message: "Hello from the Run button!",
-    });
+    const handle = await tasks.trigger<typeof runWorkflowTask>("run-workflow", {
+        workflowId: id,
+        orgId: orgId,
+    },
+    {
+        tags: [`workflow:${id}`]
+    }
+    );
 
     return {runId: handle.id, publicAccessToken: handle.publicAccessToken};
 }

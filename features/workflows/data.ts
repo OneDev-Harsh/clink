@@ -21,6 +21,15 @@ export async function saveWorkflowGraph({
     await db.update(workflows).set({graph, updatedAt: new Date()}).where(and(eq(workflows.id, id), eq(workflows.orgId, orgId)));
 }
 
+export async function getWorkflow(orgId: string, id: string) {
+  const [workflow] = await db
+    .select()
+    .from(workflows)
+    .where(and(eq(workflows.id, id), eq(workflows.orgId, orgId)))
+
+  return workflow
+}
+
 export function listWorkflows(orgId: string) {
     return db.select().from(workflows).where(eq(workflows.orgId, orgId)).orderBy(desc(workflows.createdAt));
 }
