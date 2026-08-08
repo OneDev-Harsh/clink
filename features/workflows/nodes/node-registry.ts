@@ -1,5 +1,14 @@
 import type { Node } from "@xyflow/react"
-import { Bot, Globe, Mail, MousePointerClick, ScanEye, ScanText, SquareMousePointer, type LucideIcon } from "lucide-react"
+import {
+  BotMessageSquare,
+  Braces,
+  ExternalLink,
+  Radar,
+  Rocket,
+  Send,
+  SquareMousePointer,
+  type LucideIcon,
+} from "lucide-react"
 
 export type StepNodeKind = "trigger" | "action"
 
@@ -33,7 +42,7 @@ export const nodeRegistry = {
     type: "start",
     kind: "trigger",
     label: "Start",
-    icon: MousePointerClick,
+    icon: Rocket,
     accent: "bg-blue-500 text-white",
     fields: [],
     outputs: []
@@ -42,7 +51,7 @@ export const nodeRegistry = {
     type: "open-url",
     kind: "action",
     label: "Open URL",
-    icon: Globe,
+    icon: ExternalLink,
     accent: "bg-emerald-500 text-white",
     fields: [
         { key: "url", label: "URL", placeholder: "https://youtube.com", required: true},
@@ -71,7 +80,7 @@ export const nodeRegistry = {
     type: "extract",
     kind: "action",
     label: "Extract",
-    icon: ScanText,
+    icon: Braces,
     accent: "bg-amber-500 text-white",
     fields: [
         { key: "instruction", label: "Instruction", placeholder: "Extract the product price and stock status", required: true, multiline: true},
@@ -84,7 +93,7 @@ export const nodeRegistry = {
     type: "observe",
     kind: "action",
     label: "Observe",
-    icon: ScanEye,
+    icon: Radar,
     accent: "bg-cyan-500 text-white",
     fields: [
         { key: "instruction", label: "Instruction", placeholder: "Find the buttons on the page", required: true, multiline: true},
@@ -97,7 +106,7 @@ export const nodeRegistry = {
     type: "agent",
     kind: "action",
     label: "Agent",
-    icon: Bot,
+    icon: BotMessageSquare,
     accent: "bg-rose-500 text-white",
     fields: [
         { key: "instruction", label: "Instruction", placeholder: "Search for the stock price of NVDA", required: true, multiline: true},
@@ -112,7 +121,7 @@ export const nodeRegistry = {
     type: "send-email",
     kind: "action",
     label: "Send Email",
-    icon: Mail,
+    icon: Send,
     accent: "bg-orange-500 text-white",
     fields: [
         { key: "to", label: "Recipient", placeholder: "you@example.com", required: true},
