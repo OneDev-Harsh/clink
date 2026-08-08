@@ -62,6 +62,7 @@ export const runWorkflowTask = task({
         const outputs: Record<string, unknown> = {}
 
         let stagehand: Stagehand | undefined
+        let sessionId: string | undefined
         const getStagehand = async () => {
             if(stagehand) return stagehand
             stagehand = new Stagehand({
@@ -71,6 +72,7 @@ export const runWorkflowTask = task({
                 disablePino: true,
             })
             await stagehand.init()
+            sessionId = stagehand.browserbaseSessionID
             return stagehand
         }
 
@@ -113,6 +115,6 @@ export const runWorkflowTask = task({
 
         await stagehand?.close()
 
-        return {steps}
+        return {steps, sessionId}
     },
 })

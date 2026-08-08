@@ -2,6 +2,7 @@
 
 import prettyMs from "pretty-ms"
 import { format } from "date-fns"
+import { MonitorPlay } from "lucide-react"
 
 import { Spinner } from "@/components/ui/spinner"
 import { cn } from "@/lib/utils"
@@ -15,8 +16,16 @@ import type { RunStep } from "@/features/workflows/tasks/run-workflow"
 
 export type StepSelection = {
   runId: string
+  kind: "step"
   nodeId: string
 }
+
+export type ReplaySelection = {
+  runId: string
+  kind: "replay"
+}
+
+export type RunSelection = StepSelection | ReplaySelection
 
 // The status cue for a whole run: spins while it's executing, otherwise a dot.
 function RunStatus({ run }: { run: WorkflowRunWithSteps }) {
@@ -48,7 +57,7 @@ function StepItem({
   runId: string
   step: RunStep
   isSelected: boolean
-  onToggle: (runId: string, nodeId: string) => void
+  onToggle: (selection: RunSelection) => void
 }) {
   const isRunning = step.status === "running"
   const isFailed = step.status === "failed"
@@ -57,7 +66,7 @@ function StepItem({
   return (
     <button
       type="button"
-      onClick={() => onToggle(runId, step.nodeId)}
+      onClick={() => onToggle({ runId, kind: "step", nodeId: step.nodeId })}
       className={cn(
         "flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-xs transition-colors",
         isSelected && "bg-muted"
@@ -89,16 +98,44 @@ function StepItem({
   )
 }
 
+// A whole-run replay row: plays back the session recording when selected.
+function ReplayItem({
+  runId,
+  isSelected,
+  onToggle,
+}: {
+  runId: string
+  isSelected: boolean
+  onToggle: (selection: RunSelection) => void
+}) {
+  return (
+    <button
+      type="button"
+      onClick={() => onToggle({ runId, kind: "replay" })}
+      className={cn(
+        "flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-xs transition-colors",
+        isSelected && "bg-muted"
+      )}
+    >
+      <MonitorPlay className="size-4 text-muted-foreground" />
+      <span className="min-w-0 flex-1 truncate font-medium">Replay</span>
+    </button>
+  )
+}
+
 // A run's header plus its steps, newest runs first.
 function RunItem({
   run,
   selected,
-  onToggleStep,
+  onToggle,
 }: {
   run: WorkflowRunWithSteps
-  selected?: StepSelection
-  onToggleStep: (runId: string, nodeId: string) => void
+  selected?: RunSelection
+  onToggle: (selection: RunSelection) => void
 }) {
+  const hasReplay =
+    run.sessionId !== undefined && !run.isExecuting && !run.isQueued
+
   return (
     <div>
       <div className="flex items-center gap-2 px-3 py-1.5 text-xs text-muted-foreground">
@@ -119,11 +156,22 @@ function RunItem({
             runId={run.id}
             step={step}
             isSelected={
-              selected?.runId === run.id && selected.nodeId === step.nodeId
+              selected?.kind === "step" &&
+              selected.runId === run.id &&
+              selected.nodeId === step.nodeId
             }
-            onToggle={onToggleStep}
+            onToggle={onToggle}
           />
         ))}
+        {hasReplay && (
+          <ReplayItem
+            runId={run.id}
+            isSelected={
+              selected?.kind === "replay" && selected.runId === run.id
+            }
+            onToggle={onToggle}
+          />
+        )}
       </div>
     </div>
   )
@@ -132,10 +180,10 @@ function RunItem({
 // The runs list: every workflow run with its steps nested underneath.
 export function LogsPanel({
   selected,
-  onToggleStep,
+  onToggle,
 }: {
-  selected?: StepSelection
-  onToggleStep: (runId: string, nodeId: string) => void
+  selected?: RunSelection
+  onToggle: (selection: RunSelection) => void
 }) {
   const runs = useWorkflowRuns()
 
@@ -154,7 +202,7 @@ export function LogsPanel({
           key={run.id}
           run={run}
           selected={selected}
-          onToggleStep={onToggleStep}
+          onToggle={onToggle}
         />
       ))}
     </div>

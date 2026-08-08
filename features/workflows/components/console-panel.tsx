@@ -11,29 +11,41 @@ import {
 
 import { useWorkflowRuns } from "@/features/workflows/components/workflow-runs-provider"
 
-import { InspectorPanel } from "./inspector-panel"
-import { LogsPanel, type StepSelection } from "./logs-panel"
+import { InspectorPanel, type InspectorSelection } from "./inspector-panel"
+import { LogsPanel, type RunSelection } from "./logs-panel"
 
-// The console below the canvas: a header, the runs list, and — while a step is
-// selected — its result next to the logs. Owns the currently selected step —
-// clicking a step toggles it.
+function sameSelection(a: RunSelection, b: RunSelection): boolean {
+  if (a.runId !== b.runId) return false
+  if (a.kind === "replay" || b.kind === "replay") {
+    return a.kind === "replay" && b.kind === "replay"
+  }
+  return a.nodeId === b.nodeId
+}
+
+// The console below the canvas: a header, the runs list, and — while a step or
+// replay is selected — its result next to the logs. Owns the currently selected
+// step — clicking a step toggles it.
 export function ConsolePanel() {
   const runs = useWorkflowRuns()
-  const [selected, setSelected] = useState<StepSelection | undefined>()
+  const [selected, setSelected] = useState<RunSelection | undefined>()
 
-  const toggleStep = (runId: string, nodeId: string) => {
+  const toggleSelection = (selection: RunSelection) => {
     setSelected((prev) =>
-      prev && prev.runId === runId && prev.nodeId === nodeId
-        ? undefined
-        : { runId, nodeId }
+      prev && sameSelection(prev, selection) ? undefined : selection
     )
   }
 
-  const selectedStep = selected
-    ? runs
-        .find((run) => run.id === selected.runId)
-        ?.steps.find((step) => step.nodeId === selected.nodeId)
+  const selectedRun = selected
+    ? runs.find((run) => run.id === selected.runId)
     : undefined
+
+  let inspectorSelection: InspectorSelection | undefined
+  if (selected?.kind === "step") {
+    const step = selectedRun?.steps.find((s) => s.nodeId === selected.nodeId)
+    if (step) inspectorSelection = { kind: "step", step }
+  } else if (selected?.kind === "replay" && selectedRun?.sessionId) {
+    inspectorSelection = { kind: "replay", sessionId: selectedRun.sessionId }
+  }
 
   return (
     <div className="flex h-full min-h-0 flex-col bg-background">
@@ -44,14 +56,14 @@ export function ConsolePanel() {
       <ResizablePanelGroup orientation="horizontal" className="min-h-0 flex-1">
         <ResizablePanel minSize="10rem">
           <div className="h-full overflow-y-auto">
-            <LogsPanel selected={selected} onToggleStep={toggleStep} />
+            <LogsPanel selected={selected} onToggle={toggleSelection} />
           </div>
         </ResizablePanel>
-        {selectedStep && (
+        {inspectorSelection && (
           <>
             <ResizableHandle withHandle />
             <ResizablePanel defaultSize="20rem" minSize="12rem" maxSize="32rem">
-              <InspectorPanel step={selectedStep} />
+              <InspectorPanel selection={inspectorSelection} />
             </ResizablePanel>
           </>
         )}

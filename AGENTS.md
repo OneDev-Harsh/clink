@@ -24,6 +24,18 @@ Three edits, all under `features/workflows/nodes/`:
 The run task and the canvas step node are registry-driven — never touch them to add
 a node.
 
+## Browserbase observability
+
+Session recordings, replays, live view, and logs come from the core Browserbase SDK
+(`@browserbasehq/sdk`) — not Stagehand. Before building any observability feature, consult
+Browserbase's observability docs:
+https://docs.browserbase.com/platform/browser/observability
+
+Session replay specifically — retrieving a session's recording as an HLS playlist — is
+documented here:
+https://docs.browserbase.com/platform/browser/observability/session-replay
+The retrieval needs the secret API key, so it must be proxied server-side.
+
 # Database types
 
 Derive database types from the Drizzle schema — never hand-write custom or partial

@@ -14,6 +14,7 @@ type WorkflowRun = ReturnType<
 
 export type WorkflowRunWithSteps = WorkflowRun & {
   steps: RunStep[]
+  sessionId?: string
 }
 
 const WorkflowRunsContext = createContext<WorkflowRun[]>([])
@@ -51,11 +52,20 @@ function resolveSteps(run: WorkflowRun): RunStep[] {
   )
 }
 
+function resolveSessionId(run: WorkflowRun): string | undefined {
+  return run.output?.sessionId
+}
+
 export function useWorkflowRuns(): WorkflowRunWithSteps[] {
   const runs = useContext(WorkflowRunsContext)
 
   return useMemo(
-    () => runs.map((run) => ({ ...run, steps: resolveSteps(run) })),
+    () =>
+      runs.map((run) => ({
+        ...run,
+        steps: resolveSteps(run),
+        sessionId: resolveSessionId(run),
+      })),
     [runs]
   )
 }
