@@ -1,4 +1,7 @@
-// Pauses the flow for a fixed number of seconds before continuing.
+import { wait } from "@trigger.dev/sdk"
+
+// Pauses the flow for a fixed number of seconds before continuing. Uses a
+// durable Trigger.dev wait so the run survives machine restarts and retries.
 export async function waitNode({ duration }: { duration: string }) {
     const seconds = Number.parseFloat(duration)
     if (!Number.isFinite(seconds) || seconds < 0) {
@@ -6,8 +9,8 @@ export async function waitNode({ duration }: { duration: string }) {
     }
 
     const waitedMs = Math.round(seconds * 1000)
-    if (waitedMs > 0) {
-        await new Promise((resolve) => setTimeout(resolve, waitedMs))
+    if (seconds > 0) {
+        await wait.for({ seconds })
     }
 
     return { waitedMs }

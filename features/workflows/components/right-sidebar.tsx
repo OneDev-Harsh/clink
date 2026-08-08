@@ -40,6 +40,7 @@ import { validateGraph } from "@/features/workflows/lib/validate-graph"
 import { useUpstreamConnections } from "@/features/workflows/hooks/use-upstream-connections"
 
 import { NodeIcon } from "@/features/workflows/components/node-icon"
+import { useDirty } from "@/features/workflows/components/workflow-dirty-context"
 import {
   nodeRegistry,
   type NodeDefinition,
@@ -370,6 +371,7 @@ function DeleteWorkflowButton({ workflowId }: { workflowId: string }) {
 function SaveButton({ workflowId }: { workflowId: string }) {
   const { getNodes, getEdges } = useReactFlow<StepNodeType>()
   const [isPending, startTransition] = useTransition()
+  const { isDirty, markSaved } = useDirty()
 
   return (
     <Button
@@ -380,6 +382,7 @@ function SaveButton({ workflowId }: { workflowId: string }) {
         startTransition(async () => {
           const graph = { nodes: getNodes(), edges: getEdges() }
           await saveWorkflowAction({ id: workflowId, graph })
+          markSaved(getNodes(), getEdges())
           toast.success("Workflow saved")
         })
       }}
@@ -387,6 +390,12 @@ function SaveButton({ workflowId }: { workflowId: string }) {
     >
       <Save />
       Save
+      {isDirty && (
+        <span
+          aria-label="Unsaved changes"
+          className="size-1.5 rounded-full bg-amber-500"
+        />
+      )}
     </Button>
   )
 }

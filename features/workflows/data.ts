@@ -1,10 +1,9 @@
 import {and, desc, eq} from "drizzle-orm";
 
 import {db} from "@/lib/db";
-import {workflows, WorkflowGraph} from "@/lib/db/schema"
+import {workflows, workflowRuns, WorkflowGraph} from "@/lib/db/schema"
 
 import {validateGraph} from "@/features/workflows/lib/validate-graph"
-import { th } from "date-fns/locale";
 
 export async function saveWorkflowGraph({
     orgId,
@@ -44,4 +43,35 @@ export function createWorkflow(orgId: string, name: string) {
 
 export function deleteWorkflow(orgId: string, workflowId: string) {
     return db.delete(workflows).where(and(eq(workflows.id, workflowId), eq(workflows.orgId, orgId))).returning();
+}
+
+// Upserts the browser session for a run so the replay endpoint can authorize it.
+export async function recordWorkflowSession({
+    sessionId,
+    workflowId,
+    orgId,
+    status,
+}: {
+    sessionId: string
+    workflowId: string
+    orgId: string
+    status: "running" | "completed" | "failed"
+}) {
+    await db
+        .insert(workflowRuns)
+        .values({sessionId, workflowId, orgId, status, updatedAt: new Date()})
+        .onConflictDoUpdate({
+            target: workflowRuns.sessionId,
+            set: {status, updatedAt: new Date()},
+        });
+}
+
+// Looks up a run by session id, scoped to an org. Returns undefined when the
+// session doesn't exist or belongs to another org.
+export function getWorkflowRunBySessionId(sessionId: string, orgId: string) {
+    return db
+        .select()
+        .from(workflowRuns)
+        .where(and(eq(workflowRuns.sessionId, sessionId), eq(workflowRuns.orgId, orgId)))
+        .limit(1);
 }

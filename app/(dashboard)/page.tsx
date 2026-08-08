@@ -9,6 +9,9 @@ import {
 import { Button } from "@/components/ui/button"
 import { WorkflowIcon, Plus } from "lucide-react"
 
+import { createWorkflowAction } from "@/features/workflows/lib/actions"
+import { generateSlug } from "@/features/workflows/lib/generate-slug"
+
 export default function Page() {
   return (
     <div className="relative flex h-full min-h-svh flex-col overflow-hidden">
@@ -28,10 +31,12 @@ export default function Page() {
             Select a workflow from the sidebar to view its details, or create a new
             workflow to get started.
           </EmptyDescription>
-          <Button className="mt-2">
-            <Plus />
-            New Workflow
-          </Button>
+          <form action={createWorkflowAction.bind(null, generateSlug())}>
+            <Button type="submit" className="mt-2">
+              <Plus />
+              New Workflow
+            </Button>
+          </form>
         </EmptyContent>
       </Empty>
     </div>

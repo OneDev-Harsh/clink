@@ -2,6 +2,8 @@ import { auth } from "@clerk/nextjs/server"
 import { Browserbase, type APIError } from "@browserbasehq/sdk"
 import { NextResponse } from "next/server"
 
+import { getWorkflowRunBySessionId } from "@/features/workflows/data"
+
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ sessionId: string }> }
@@ -15,6 +17,16 @@ export async function GET(
   }
 
   const { sessionId } = await params
+
+  // Only the org that owns the run may stream its replay. Unknown or foreign
+  // sessions are treated as not-found so session ids can't be probed.
+  const [run] = await getWorkflowRunBySessionId(sessionId, orgId)
+  if (!run) {
+    return NextResponse.json(
+      { error: "Replay not found" },
+      { status: 404, headers: { "Cache-Control": "no-store" } }
+    )
+  }
 
   const bb = new Browserbase({ apiKey: process.env.BROWSERBASE_API_KEY ?? "" })
 

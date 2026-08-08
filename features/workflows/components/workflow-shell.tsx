@@ -11,6 +11,10 @@ import type { WorkflowGraph } from "@/lib/db/schema"
 import { ConsolePanel } from "./console-panel"
 import { RightSidebar } from "./right-sidebar"
 import { WorkflowCanvas } from "./workflow-canvas"
+import {
+  WorkflowDirtyProvider,
+  workflowSignature,
+} from "./workflow-dirty-context"
 
 export function WorkflowShell({
   workflowId,
@@ -19,27 +23,33 @@ export function WorkflowShell({
   workflowId: string
   graph?: WorkflowGraph
 }) {
+  const initialSignature = graph
+    ? workflowSignature(graph.nodes, graph.edges)
+    : null
+
   return (
-    <ResizablePanelGroup
-      orientation="horizontal"
-      className="size-full"
-      data-workflow-id={workflowId}
-    >
-      <ResizablePanel minSize="30rem">
-        <ResizablePanelGroup orientation="vertical">
-          <ResizablePanel minSize="18rem">
-            <WorkflowCanvas graph={graph} />
-          </ResizablePanel>
-          <ResizableHandle withHandle />
-          <ResizablePanel defaultSize="8rem" minSize="6rem">
-            <ConsolePanel />
-          </ResizablePanel>
-        </ResizablePanelGroup>
-      </ResizablePanel>
-      <ResizableHandle withHandle />
-      <ResizablePanel defaultSize="16rem" minSize="14rem" maxSize="36rem">
-        <RightSidebar workflowId={workflowId} />
-      </ResizablePanel>
-    </ResizablePanelGroup>
+    <WorkflowDirtyProvider initialSignature={initialSignature}>
+      <ResizablePanelGroup
+        orientation="horizontal"
+        className="size-full"
+        data-workflow-id={workflowId}
+      >
+        <ResizablePanel minSize="30rem">
+          <ResizablePanelGroup orientation="vertical">
+            <ResizablePanel minSize="18rem">
+              <WorkflowCanvas graph={graph} />
+            </ResizablePanel>
+            <ResizableHandle withHandle />
+            <ResizablePanel defaultSize="8rem" minSize="6rem">
+              <ConsolePanel />
+            </ResizablePanel>
+          </ResizablePanelGroup>
+        </ResizablePanel>
+        <ResizableHandle withHandle />
+        <ResizablePanel defaultSize="16rem" minSize="14rem" maxSize="36rem">
+          <RightSidebar workflowId={workflowId} />
+        </ResizablePanel>
+      </ResizablePanelGroup>
+    </WorkflowDirtyProvider>
   )
 }
