@@ -4,12 +4,29 @@ import {logger, metadata, task} from "@trigger.dev/sdk"
 import { Stagehand } from "@browserbasehq/stagehand"
 import {nodeExecutors} from "@/features/workflows/nodes/node-executors"
 import {interpolate} from "@/features/workflows/lib/interpolate"
+import type {NodeType} from "@/features/workflows/nodes/node-registry"
+import type {DeserializedJson} from "@trigger.dev/core"
 
 import {getWorkflow} from "@/features/workflows/data"
 
+export type RunStepStatus = "pending" | "running" | "done" | "failed"
+
 export type RunStep = {
     nodeId: string
-    status: "pending" | "running" | "done" | "failed"
+    nodeType: NodeType
+    title: string
+    status: RunStepStatus
+    durationMs?: number
+    output?: DeserializedJson
+    error?: {
+        name: string
+        message: string
+    }
+}
+
+function toRunError(error: unknown): {name: string; message: string} {
+    if(error instanceof Error) return {name: error.name, message: error.message}
+    return {name: "Error", message: String(error)}
 }
 
 export const runWorkflowTask = task({
@@ -27,7 +44,15 @@ export const runWorkflowTask = task({
 
         logger.log(`Running workflow ${workflowId} for org ${orgId} with ${nodes.length} nodes and ${edges.length} edges in order: ${order.join(", ")}`)
 
-        const steps: RunStep[] = order.map(nodeId => ({nodeId, status: "pending"}))
+        const steps: RunStep[] = order.map(nodeId => {
+            const node = byId.get(nodeId)!
+            return {
+                nodeId,
+                nodeType: node.data.type,
+                title: node.data.title,
+                status: "pending" as const,
+            }
+        })
         const stepById = new Map(steps.map(step => [step.nodeId, step]))
         const publishSteps = () => {
             metadata.set("steps", steps)
@@ -56,6 +81,7 @@ export const runWorkflowTask = task({
 
             const step = stepById.get(id)!
             step.status = "running"
+            const startedAt = Date.now()
             publishSteps()
             await metadata.flush()
 
@@ -66,9 +92,14 @@ export const runWorkflowTask = task({
                 )
                 try {
                     const result = await executor({values, getStagehand})
-                    if(result !== undefined) outputs[id] = result
+                    if(result !== undefined){
+                        step.output = result as DeserializedJson
+                        outputs[id] = result
+                    }
                 } catch(error){
                     step.status = "failed"
+                    step.durationMs = Date.now() - startedAt
+                    step.error = toRunError(error)
                     publishSteps()
                     await metadata.flush()
                     throw error
@@ -76,6 +107,7 @@ export const runWorkflowTask = task({
             }
 
             step.status = "done"
+            step.durationMs = Date.now() - startedAt
             publishSteps()
         }
 

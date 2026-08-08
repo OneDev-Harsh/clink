@@ -24,12 +24,16 @@ import { Label } from "@/components/ui/label"
 import { ResizablePanel } from "@/components/ui/resizable"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Textarea } from "@/components/ui/textarea"
-import { cn } from "@/lib/utils"
 
-import { deleteWorkflowAction, runWorkflowAction, saveWorkflowAction } from "@/features/workflows/lib/actions"
-import {validateGraph} from "@/features/workflows/lib/validate-graph"
+import {
+  deleteWorkflowAction,
+  runWorkflowAction,
+  saveWorkflowAction,
+} from "@/features/workflows/lib/actions"
+import { validateGraph } from "@/features/workflows/lib/validate-graph"
 import { useUpstreamConnections } from "@/features/workflows/hooks/use-upstream-connections"
 
+import { NodeIcon } from "@/features/workflows/components/node-icon"
 import {
   nodeRegistry,
   type NodeDefinition,
@@ -47,23 +51,6 @@ import {
 // ---------------------------------------------------------------------------
 // Shared pieces — used by both the Toolbar and the Editor.
 // ---------------------------------------------------------------------------
-
-// The accent-colored icon chip, mirroring the node on the canvas.
-function NodeIcon({ type, className }: { type: NodeType; className?: string }) {
-  const def = nodeRegistry[type]
-  const Icon = def.icon
-  return (
-    <span
-      className={cn(
-        "flex size-6 shrink-0 items-center justify-center rounded-md",
-        def.accent,
-        className
-      )}
-    >
-      <Icon className="size-3.5" />
-    </span>
-  )
-}
 
 // A titled, scrollable panel. Each tab renders its content inside one.
 function Section({
@@ -123,7 +110,7 @@ function FieldInput({
 
 // The Editor tab: one input per field on the selected node, or an empty state.
 function Inspector({ node }: { node: StepNodeType | undefined }) {
-  const {updateNodeData} = useReactFlow<StepNodeType>()
+  const { updateNodeData } = useReactFlow<StepNodeType>()
   const connections = useUpstreamConnections(node)
   const [lastEditedField, setLastEditedField] = useState<string | undefined>()
   const [prevNodeId, setPrevNodeId] = useState(node?.id)
@@ -149,7 +136,10 @@ function Inspector({ node }: { node: StepNodeType | undefined }) {
     if (!fieldKey) return
     updateNodeData(node.id, {
       ...node.data,
-      values: { ...node.data.values, [fieldKey]: (values[fieldKey] ?? "") + token },
+      values: {
+        ...node.data.values,
+        [fieldKey]: (values[fieldKey] ?? "") + token,
+      },
     })
   }
 
@@ -170,7 +160,10 @@ function Inspector({ node }: { node: StepNodeType | undefined }) {
                 value={values[field.key] ?? ""}
                 onChange={(value) => {
                   setLastEditedField(field.key)
-                  updateNodeData(node.id, { ...node.data, values: { ...node.data.values, [field.key]: value } })
+                  updateNodeData(node.id, {
+                    ...node.data,
+                    values: { ...node.data.values, [field.key]: value },
+                  })
                 }}
               />
             </div>
@@ -188,7 +181,10 @@ function Inspector({ node }: { node: StepNodeType | undefined }) {
                   variant="outline"
                   className="cursor-pointer hover:bg-muted hover:text-muted-foreground"
                 >
-                  <button type="button" onClick={() => insertToken(connection.token)}>
+                  <button
+                    type="button"
+                    onClick={() => insertToken(connection.token)}
+                  >
                     <NodeIcon type={connection.type} className="size-4" />
                     {connection.label}
                   </button>
@@ -323,8 +319,8 @@ function ActionsMenu({ workflowId }: { workflowId: string }) {
 }
 
 // Persists the current workflow graph (nodes, edges, values) to the database.
-function SaveButton({workflowId}: {workflowId: string}) {
-  const {getNodes, getEdges} = useReactFlow<StepNodeType>()
+function SaveButton({ workflowId }: { workflowId: string }) {
+  const { getNodes, getEdges } = useReactFlow<StepNodeType>()
   const [isPending, startTransition] = useTransition()
 
   return (
@@ -334,8 +330,8 @@ function SaveButton({workflowId}: {workflowId: string}) {
       disabled={isPending}
       onClick={() => {
         startTransition(async () => {
-          const graph = {nodes: getNodes(), edges: getEdges()}
-          await saveWorkflowAction({id: workflowId, graph})
+          const graph = { nodes: getNodes(), edges: getEdges() }
+          await saveWorkflowAction({ id: workflowId, graph })
           toast.success("Workflow saved")
         })
       }}
@@ -347,8 +343,8 @@ function SaveButton({workflowId}: {workflowId: string}) {
 }
 
 // Kicks off a run of the current workflow.
-function RunButton({workflowId}: {workflowId: string}) {
-  const {getNodes, getEdges} = useReactFlow<StepNodeType>()
+function RunButton({ workflowId }: { workflowId: string }) {
+  const { getNodes, getEdges } = useReactFlow<StepNodeType>()
   const [isPending, startTransition] = useTransition()
 
   return (
@@ -358,15 +354,15 @@ function RunButton({workflowId}: {workflowId: string}) {
       disabled={isPending}
       onClick={() => {
         // TODO: validate the graph and run the workflow (toggle to Stop while running).
-        const graph = {nodes: getNodes(), edges: getEdges()}
+        const graph = { nodes: getNodes(), edges: getEdges() }
         const problems = validateGraph(graph)
-        if(problems.length > 0){
+        if (problems.length > 0) {
           toast.error(problems[0])
           return
         }
 
-        startTransition( async () => {
-          await runWorkflowAction({id: workflowId, graph})
+        startTransition(async () => {
+          await runWorkflowAction({ id: workflowId, graph })
         })
       }}
     >
@@ -384,11 +380,12 @@ export function RightSidebar({ workflowId }: { workflowId: string }) {
   const [tab, setTab] = useState("toolbar")
 
   // TODO: read the currently selected node from React Flow.
-  const selected = useStore((s) => s.nodes.find((node) => node.selected)) as StepNodeType | undefined
+  const selected = useStore((s) => s.nodes.find((node) => node.selected)) as
+    StepNodeType | undefined
 
   // TODO: auto-switch to the Editor tab when the selection changes.
   const [prevSelectId, setPrevSelectId] = useState(selected?.id)
-  if(selected && selected.id !== prevSelectId){
+  if (selected && selected.id !== prevSelectId) {
     setPrevSelectId(selected.id)
     setTab("editor")
   }
@@ -406,7 +403,7 @@ export function RightSidebar({ workflowId }: { workflowId: string }) {
           <ActionsMenu workflowId={workflowId} />
           <div className="flex items-center gap-1">
             <SaveButton workflowId={workflowId} />
-            <RunButton workflowId={workflowId}/>
+            <RunButton workflowId={workflowId} />
           </div>
         </div>
         <TabsList className="m-2 w-fit bg-background">

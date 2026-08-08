@@ -1,6 +1,6 @@
 "use client"
 
-import { createContext, useContext, type ReactNode } from "react"
+import { createContext, useContext, useMemo, type ReactNode } from "react"
 import { useRealtimeRunsWithTag } from "@trigger.dev/react-hooks"
 
 import type {
@@ -11,6 +11,10 @@ import type {
 type WorkflowRun = ReturnType<
   typeof useRealtimeRunsWithTag<typeof runWorkflowTask>
 >["runs"][number]
+
+export type WorkflowRunWithSteps = WorkflowRun & {
+  steps: RunStep[]
+}
 
 const WorkflowRunsContext = createContext<WorkflowRun[]>([])
 
@@ -36,6 +40,23 @@ export function WorkflowRunsProvider({
     <WorkflowRunsContext.Provider value={runs}>
       {children}
     </WorkflowRunsContext.Provider>
+  )
+}
+
+function resolveSteps(run: WorkflowRun): RunStep[] {
+  return (
+    run.output?.steps ??
+    (run.metadata?.steps as RunStep[] | undefined) ??
+    []
+  )
+}
+
+export function useWorkflowRuns(): WorkflowRunWithSteps[] {
+  const runs = useContext(WorkflowRunsContext)
+
+  return useMemo(
+    () => runs.map((run) => ({ ...run, steps: resolveSteps(run) })),
+    [runs]
   )
 }
 

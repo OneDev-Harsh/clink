@@ -8,6 +8,7 @@ import {
 
 import type { WorkflowGraph } from "@/lib/db/schema"
 
+import { ConsolePanel } from "./console-panel"
 import { RightSidebar } from "./right-sidebar"
 import { WorkflowCanvas } from "./workflow-canvas"
 
@@ -31,9 +32,7 @@ export function WorkflowShell({
           </ResizablePanel>
           <ResizableHandle withHandle />
           <ResizablePanel defaultSize="8rem" minSize="6rem">
-            <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
-              Logs
-            </div>
+            <ConsolePanel />
           </ResizablePanel>
         </ResizablePanelGroup>
       </ResizablePanel>
