@@ -10,13 +10,17 @@ export async function saveWorkflowGraph({
     orgId,
     id,
     graph,
+    validate = true,
 }: {
     orgId: string
     id: string
     graph: WorkflowGraph
+    validate?: boolean
 }) {
-    const problems = validateGraph(graph)
-    if(problems.length > 0) throw new Error(`Workflow graph is invalid: ${problems.join(", ")}`)
+    if(validate){
+        const problems = validateGraph(graph)
+        if(problems.length > 0) throw new Error(`Workflow graph is invalid: ${problems.join(", ")}`)
+    }
 
     await db.update(workflows).set({graph, updatedAt: new Date()}).where(and(eq(workflows.id, id), eq(workflows.orgId, orgId)));
 }

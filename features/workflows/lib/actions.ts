@@ -30,6 +30,21 @@ export async function deleteWorkflowAction(workflowId: string) {
     redirect("/");
 }
 
+export async function saveWorkflowAction({
+    id,
+    graph,
+}: {
+    id: string
+    graph: WorkflowGraph
+}) {
+    const {orgId} = await auth();
+    if (!orgId) throw new Error("No active organization");
+
+    await saveWorkflowGraph({orgId, id, graph, validate: false});
+
+    revalidatePath(`/workflows/${id}`, "layout");
+}
+
 export async function runWorkflowAction({
     id,
     graph,

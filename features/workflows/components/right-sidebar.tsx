@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react"
 import { useReactFlow, useStore, useStoreApi } from "@xyflow/react"
-import { MoreHorizontal, Play, Trash2 } from "lucide-react"
+import { MoreHorizontal, Play, Save, Trash2 } from "lucide-react"
 import { toast } from "sonner"
 
 import {
@@ -26,7 +26,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Textarea } from "@/components/ui/textarea"
 import { cn } from "@/lib/utils"
 
-import { deleteWorkflowAction, runWorkflowAction } from "@/features/workflows/lib/actions"
+import { deleteWorkflowAction, runWorkflowAction, saveWorkflowAction } from "@/features/workflows/lib/actions"
 import {validateGraph} from "@/features/workflows/lib/validate-graph"
 import { useUpstreamConnections } from "@/features/workflows/hooks/use-upstream-connections"
 
@@ -322,6 +322,30 @@ function ActionsMenu({ workflowId }: { workflowId: string }) {
   )
 }
 
+// Persists the current workflow graph (nodes, edges, values) to the database.
+function SaveButton({workflowId}: {workflowId: string}) {
+  const {getNodes, getEdges} = useReactFlow<StepNodeType>()
+  const [isPending, startTransition] = useTransition()
+
+  return (
+    <Button
+      size="sm"
+      variant="ghost"
+      disabled={isPending}
+      onClick={() => {
+        startTransition(async () => {
+          const graph = {nodes: getNodes(), edges: getEdges()}
+          await saveWorkflowAction({id: workflowId, graph})
+          toast.success("Workflow saved")
+        })
+      }}
+    >
+      <Save />
+      Save
+    </Button>
+  )
+}
+
 // Kicks off a run of the current workflow.
 function RunButton({workflowId}: {workflowId: string}) {
   const {getNodes, getEdges} = useReactFlow<StepNodeType>()
@@ -380,7 +404,10 @@ export function RightSidebar({ workflowId }: { workflowId: string }) {
       <Tabs value={tab} onValueChange={setTab} className="size-full gap-0">
         <div className="flex items-center justify-between border-b border-border p-2">
           <ActionsMenu workflowId={workflowId} />
-          <RunButton workflowId={workflowId}/>
+          <div className="flex items-center gap-1">
+            <SaveButton workflowId={workflowId} />
+            <RunButton workflowId={workflowId}/>
+          </div>
         </div>
         <TabsList className="m-2 w-fit bg-background">
           <TabsTrigger
