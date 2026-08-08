@@ -15,7 +15,10 @@ export type InspectorSelection =
 function StepResult({ step }: { step: RunStep }) {
   if (step.error) {
     return (
-      <div className="flex flex-col gap-1 p-3">
+      <div className="flex flex-col gap-1.5 p-3">
+        <span className="w-fit rounded-md bg-destructive/10 px-1.5 py-0.5 text-[10px] font-semibold tracking-wider text-destructive uppercase">
+          Error
+        </span>
         <p className="text-xs font-semibold text-destructive">
           {step.error.name}
         </p>
@@ -28,9 +31,14 @@ function StepResult({ step }: { step: RunStep }) {
 
   if (step.output !== undefined) {
     return (
-      <pre className="overflow-x-auto p-3 font-mono text-xs leading-relaxed">
-        {JSON.stringify(step.output, null, 2)}
-      </pre>
+      <div className="p-3">
+        <span className="mb-2 block text-[10px] font-semibold tracking-wider text-muted-foreground uppercase">
+          Output
+        </span>
+        <pre className="overflow-x-auto rounded-md border border-border bg-muted/40 p-3 font-mono text-xs leading-relaxed text-foreground/90">
+          {JSON.stringify(step.output, null, 2)}
+        </pre>
+      </div>
     )
   }
 

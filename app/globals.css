@@ -136,3 +136,75 @@
     cursor: pointer !important;
   }
 }
+
+/* ---------------------------------------------------------------------------
+ * Premium chrome: React Flow controls, minimap, and edge polish.
+ * --------------------------------------------------------------------------- */
+
+.react-flow__controls {
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 12px 32px -12px oklch(0 0 0 / 0.6);
+}
+
+.react-flow__controls-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+  color: var(--muted-foreground);
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.react-flow__controls-button:last-child {
+  border-bottom: none;
+}
+
+.react-flow__controls-button:hover {
+  background: var(--muted);
+  color: var(--foreground);
+}
+
+.react-flow__minimap {
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: color-mix(in oklab, var(--card) 80%, transparent);
+  box-shadow: 0 12px 32px -12px oklch(0 0 0 / 0.6);
+}
+
+.react-flow__attribution {
+  background: transparent;
+  color: var(--muted-foreground);
+}
+
+/* ---------------------------------------------------------------------------
+ * Thin, theme-aware scrollbars.
+ * --------------------------------------------------------------------------- */
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in oklab, var(--border) 80%, transparent) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 9999px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--muted-foreground);
+}

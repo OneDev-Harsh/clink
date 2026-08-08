@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react"
 import { useReactFlow, useStore, useStoreApi } from "@xyflow/react"
-import { MoreHorizontal, Play, Save, Trash2 } from "lucide-react"
+import { Play, Save, Trash2 } from "lucide-react"
 import { toast } from "sonner"
 
 import {
@@ -11,14 +11,20 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogMedia,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { ResizablePanel } from "@/components/ui/resizable"
@@ -66,7 +72,7 @@ function Section({
 }) {
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <div className="flex items-center gap-2 border-y border-border bg-card px-3 py-1.5 text-sm font-semibold">
+      <div className="flex items-center gap-2 border-y border-border bg-muted/30 px-3 py-2 text-sm font-semibold">
         {icon}
         {title}
         {action && <span className="ml-auto">{action}</span>}
@@ -126,7 +132,14 @@ function Inspector({ node }: { node: StepNodeType | undefined }) {
   if (!node) {
     return (
       <Section title="Editor">
-        <p className="p-3 text-sm text-muted-foreground">No node selected</p>
+        <div className="flex flex-col items-center gap-1.5 px-6 py-12 text-center">
+          <span className="text-xs font-medium text-muted-foreground">
+            No node selected
+          </span>
+          <span className="text-[11px] text-muted-foreground/70">
+            Select a node on the canvas to edit its properties.
+          </span>
+        </div>
       </Section>
     )
   }
@@ -291,9 +304,12 @@ function Palette() {
                     key={def.type}
                     variant="ghost"
                     onClick={() => add(def.type as NodeType)}
-                    className="justify-start gap-2.5 px-1.5 text-xs"
+                    className="group justify-start gap-2.5 rounded-md px-2 py-1.5 text-xs font-medium hover:bg-muted/70"
                   >
-                    <NodeIcon type={def.type as NodeType} />
+                    <NodeIcon
+                      type={def.type as NodeType}
+                      className="transition-transform group-hover:scale-105"
+                    />
                     {def.label}
                   </Button>
                 ))}
@@ -309,28 +325,44 @@ function Palette() {
 // Header — workflow-level actions shown above the tabs.
 // ---------------------------------------------------------------------------
 
-// The "..." menu for workflow-level actions.
-function ActionsMenu({ workflowId }: { workflowId: string }) {
+// Deletes the workflow, behind a confirmation dialog.
+function DeleteWorkflowButton({ workflowId }: { workflowId: string }) {
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button size="icon" variant="ghost">
-          <MoreHorizontal />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="start" className="min-w-48">
-        <DropdownMenuItem
-          variant="destructive"
-          className="text-xs [&_svg:not([class*='size-'])]:size-3.5"
-          onSelect={() => {
-            deleteWorkflowAction(workflowId)
-          }}
+    <AlertDialog>
+      <AlertDialogTrigger asChild>
+        <Button
+          size="icon-sm"
+          variant="ghost"
+          aria-label="Delete workflow"
+          className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
         >
           <Trash2 />
-          Delete workflow
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+        </Button>
+      </AlertDialogTrigger>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogMedia>
+            <Trash2 />
+          </AlertDialogMedia>
+          <AlertDialogTitle>Delete workflow?</AlertDialogTitle>
+          <AlertDialogDescription>
+            This will permanently delete the workflow and all of its runs. This
+            action cannot be undone.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogAction
+            variant="destructive"
+            onClick={() => {
+              deleteWorkflowAction(workflowId)
+            }}
+          >
+            Delete
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   )
 }
 
@@ -351,6 +383,7 @@ function SaveButton({ workflowId }: { workflowId: string }) {
           toast.success("Workflow saved")
         })
       }}
+      className="text-muted-foreground hover:bg-muted/70 hover:text-foreground"
     >
       <Save />
       Save
@@ -366,7 +399,6 @@ function RunButton({ workflowId }: { workflowId: string }) {
   return (
     <Button
       size="sm"
-      variant="secondary"
       disabled={isPending}
       onClick={() => {
         // TODO: validate the graph and run the workflow (toggle to Stop while running).
@@ -381,8 +413,9 @@ function RunButton({ workflowId }: { workflowId: string }) {
           await runWorkflowAction({ id: workflowId, graph })
         })
       }}
+      className="bg-gradient-to-br from-emerald-500 to-green-600 text-white shadow-md shadow-emerald-600/25 hover:from-emerald-400 hover:to-green-500 hover:text-white"
     >
-      <Play fill="primary" />
+      <Play className="size-3.5 fill-current" />
       Run
     </Button>
   )
@@ -415,27 +448,29 @@ export function RightSidebar({ workflowId }: { workflowId: string }) {
       groupResizeBehavior="preserve-pixel-size"
     >
       <Tabs value={tab} onValueChange={setTab} className="size-full gap-0">
-        <div className="flex items-center justify-between border-b border-border p-2">
-          <ActionsMenu workflowId={workflowId} />
-          <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1.5 border-b border-border bg-muted/20 p-2">
+          <DeleteWorkflowButton workflowId={workflowId} />
+          <div className="ml-auto flex items-center gap-1.5">
             <SaveButton workflowId={workflowId} />
             <RunButton workflowId={workflowId} />
           </div>
         </div>
-        <TabsList className="m-2 w-fit bg-background">
-          <TabsTrigger
-            value="toolbar"
-            className="flex-none rounded-sm data-active:bg-accent! data-active:text-accent-foreground! data-active:shadow-none! dark:data-active:border-transparent!"
-          >
-            Toolbar
-          </TabsTrigger>
-          <TabsTrigger
-            value="editor"
-            className="flex-none rounded-sm data-active:bg-accent! data-active:text-accent-foreground! data-active:shadow-none! dark:data-active:border-transparent!"
-          >
-            Editor
-          </TabsTrigger>
-        </TabsList>
+        <div className="px-2 pt-2 pb-1.5">
+          <TabsList className="w-full bg-muted/40">
+            <TabsTrigger
+              value="toolbar"
+              className="flex-1 rounded-sm data-active:bg-accent! data-active:text-accent-foreground! data-active:shadow-none! dark:data-active:border-transparent!"
+            >
+              Toolbar
+            </TabsTrigger>
+            <TabsTrigger
+              value="editor"
+              className="flex-1 rounded-sm data-active:bg-accent! data-active:text-accent-foreground! data-active:shadow-none! dark:data-active:border-transparent!"
+            >
+              Editor
+            </TabsTrigger>
+          </TabsList>
+        </div>
         <TabsContent value="toolbar" className="flex min-h-0 flex-col">
           <Palette />
         </TabsContent>

@@ -11,6 +11,7 @@ import {extract} from "@/features/workflows/nodes/extract"
 import {observe} from "@/features/workflows/nodes/observe"
 import {agent} from "@/features/workflows/nodes/agent"
 import {sendEmail} from "@/features/workflows/nodes/send-email"
+import {waitNode} from "@/features/workflows/nodes/wait"
 
 export type NodeContext = {
     values: Record<string, string>
@@ -50,5 +51,9 @@ export const nodeExecutors: Partial<Record<NodeType, NodeExecutor>> = {
             to: values.to,
             subject: values.subject,
             body: values.body,
+        }),
+    "wait": async ({values}) =>
+        waitNode({
+            duration: values.duration,
         }),
 } satisfies Record<ActionNodeType, NodeExecutor>

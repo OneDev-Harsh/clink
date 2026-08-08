@@ -47,6 +47,36 @@ function RunStatus({ run }: { run: WorkflowRunWithSteps }) {
   )
 }
 
+// A compact textual status pill for a run, shown at the end of its header.
+function RunStatusPill({ run }: { run: WorkflowRunWithSteps }) {
+  if (run.isExecuting || run.isQueued) {
+    return (
+      <span className="flex shrink-0 items-center gap-1.5 rounded-full border border-blue-500/30 bg-blue-500/10 px-2 py-0.5 text-[10px] font-medium text-blue-400">
+        <span className="size-1 animate-pulse rounded-full bg-blue-400" />
+        {run.isQueued ? "Queued" : "Running"}
+      </span>
+    )
+  }
+
+  if (run.isFailed) {
+    return (
+      <span className="shrink-0 rounded-full bg-destructive/10 px-2 py-0.5 text-[10px] font-medium text-destructive">
+        Failed
+      </span>
+    )
+  }
+
+  if (run.isCompleted) {
+    return (
+      <span className="shrink-0 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium text-emerald-500">
+        Done
+      </span>
+    )
+  }
+
+  return null
+}
+
 // A single step row: node icon, title, and the time it took.
 function StepItem({
   runId,
@@ -69,6 +99,7 @@ function StepItem({
       onClick={() => onToggle({ runId, kind: "step", nodeId: step.nodeId })}
       className={cn(
         "flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-xs transition-colors",
+        "hover:bg-muted/50 focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none",
         isSelected && "bg-muted"
       )}
     >
@@ -114,6 +145,7 @@ function ReplayItem({
       onClick={() => onToggle({ runId, kind: "replay" })}
       className={cn(
         "flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-xs transition-colors",
+        "hover:bg-muted/50 focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none",
         isSelected && "bg-muted"
       )}
     >
@@ -143,11 +175,12 @@ function RunItem({
         <span className="min-w-0 truncate font-medium tabular-nums">
           {format(run.createdAt, "MMM d, yyyy, h:mm a")}
         </span>
-        {!run.isExecuting && !run.isQueued && run.durationMs > 0 && (
-          <span className="ml-auto shrink-0 tabular-nums">
-            {prettyMs(run.durationMs)}
-          </span>
-        )}
+        <span className="ml-auto flex items-center gap-2">
+          {!run.isExecuting && !run.isQueued && run.durationMs > 0 && (
+            <span className="shrink-0 tabular-nums">{prettyMs(run.durationMs)}</span>
+          )}
+          <RunStatusPill run={run} />
+        </span>
       </div>
       <div className="flex flex-col gap-0.5 px-1.5 pb-2">
         {run.steps.map((step) => (

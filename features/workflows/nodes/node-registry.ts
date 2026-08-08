@@ -7,6 +7,7 @@ import {
   Rocket,
   Send,
   SquareMousePointer,
+  Timer,
   type LucideIcon,
 } from "lucide-react"
 
@@ -130,6 +131,19 @@ export const nodeRegistry = {
     ],
     outputs: [
         { path: "id", label: "Email ID" },
+     ]
+  },
+  wait: {
+    type: "wait",
+    kind: "action",
+    label: "Wait",
+    icon: Timer,
+    accent: "bg-teal-500 text-white",
+    fields: [
+        { key: "duration", label: "Duration (seconds)", placeholder: "5", required: true},
+    ],
+    outputs: [
+        { path: "waitedMs", label: "Waited (ms)" },
      ]
   },
 } satisfies Record<string, NodeDefinition>

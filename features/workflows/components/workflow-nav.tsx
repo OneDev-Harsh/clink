@@ -73,6 +73,7 @@ export function WorkflowNav({
                 variant="outline"
                 tooltip="New Workflow"
                 onClick={handleCreate}
+                className="border-dashed text-muted-foreground hover:text-foreground"
               >
                 <Plus />
                 <span>New Workflow</span>
