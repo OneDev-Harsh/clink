@@ -6,6 +6,10 @@ import type {
 } from "@/features/workflows/nodes/node-registry"
 
 import {openUrl} from "@/features/workflows/nodes/open-url"
+import {act} from "@/features/workflows/nodes/act"
+import {extract} from "@/features/workflows/nodes/extract"
+import {observe} from "@/features/workflows/nodes/observe"
+import {agent} from "@/features/workflows/nodes/agent"
 
 export type NodeContext = {
     values: Record<string, string>
@@ -19,5 +23,25 @@ export const nodeExecutors: Partial<Record<NodeType, NodeExecutor>> = {
         openUrl({
             stagehand: await getStagehand(),
             url: values.url,
+        }),
+    "act": async ({values, getStagehand}) =>
+        act({
+            stagehand: await getStagehand(),
+            instruction: values.instruction,
+        }),
+    "extract": async ({values, getStagehand}) =>
+        extract({
+            stagehand: await getStagehand(),
+            instruction: values.instruction,
+        }),
+    "observe": async ({values, getStagehand}) =>
+        observe({
+            stagehand: await getStagehand(),
+            instruction: values.instruction,
+        }),
+    "agent": async ({values, getStagehand}) =>
+        agent({
+            stagehand: await getStagehand(),
+            instruction: values.instruction,
         }),
 } satisfies Record<ActionNodeType, NodeExecutor>
