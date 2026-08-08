@@ -56,10 +56,12 @@ import {
 function Section({
   title,
   icon,
+  action,
   children,
 }: {
   title: string
   icon?: React.ReactNode
+  action?: React.ReactNode
   children: React.ReactNode
 }) {
   return (
@@ -67,6 +69,7 @@ function Section({
       <div className="flex items-center gap-2 border-y border-border bg-card px-3 py-1.5 text-sm font-semibold">
         {icon}
         {title}
+        {action && <span className="ml-auto">{action}</span>}
       </div>
       <div className="min-h-0 flex-1 overflow-y-auto">{children}</div>
     </div>
@@ -110,7 +113,7 @@ function FieldInput({
 
 // The Editor tab: one input per field on the selected node, or an empty state.
 function Inspector({ node }: { node: StepNodeType | undefined }) {
-  const { updateNodeData } = useReactFlow<StepNodeType>()
+  const { updateNodeData, deleteElements } = useReactFlow<StepNodeType>()
   const connections = useUpstreamConnections(node)
   const [lastEditedField, setLastEditedField] = useState<string | undefined>()
   const [prevNodeId, setPrevNodeId] = useState(node?.id)
@@ -144,7 +147,20 @@ function Inspector({ node }: { node: StepNodeType | undefined }) {
   }
 
   return (
-    <Section title={title} icon={<NodeIcon type={type} />}>
+    <Section
+      title={title}
+      icon={<NodeIcon type={type} />}
+      action={
+        <Button
+          size="icon-xs"
+          variant="destructive"
+          aria-label={`Delete ${title}`}
+          onClick={() => deleteElements({ nodes: [{ id: node.id }] })}
+        >
+          <Trash2 />
+        </Button>
+      }
+    >
       <div className="flex flex-col gap-3 p-3">
         {def.fields.length === 0 ? (
           <p className="text-xs text-muted-foreground">No properties</p>
