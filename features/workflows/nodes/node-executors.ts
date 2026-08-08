@@ -10,6 +10,7 @@ import {act} from "@/features/workflows/nodes/act"
 import {extract} from "@/features/workflows/nodes/extract"
 import {observe} from "@/features/workflows/nodes/observe"
 import {agent} from "@/features/workflows/nodes/agent"
+import {sendEmail} from "@/features/workflows/nodes/send-email"
 
 export type NodeContext = {
     values: Record<string, string>
@@ -43,5 +44,11 @@ export const nodeExecutors: Partial<Record<NodeType, NodeExecutor>> = {
         agent({
             stagehand: await getStagehand(),
             instruction: values.instruction,
+        }),
+    "send-email": async ({values}) =>
+        sendEmail({
+            to: values.to,
+            subject: values.subject,
+            body: values.body,
         }),
 } satisfies Record<ActionNodeType, NodeExecutor>
