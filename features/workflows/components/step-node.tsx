@@ -6,14 +6,19 @@ import {
   type StepNodeType,
 } from "@/features/workflows/nodes/node-registry"
 import { cn } from "@/lib/utils"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import { Spinner } from "@/components/ui/spinner"
+import { useLatestRunSteps } from "@/features/workflows/components/workflow-runs-provider"
 
-function StepNodeComponent({ data, selected }: NodeProps<StepNodeType>) {
+function StepNodeComponent({ id, data, selected }: NodeProps<StepNodeType>) {
   const { type, kind, title, values } = data
   const def = nodeRegistry[type]
   const Icon = def.icon
   const fields = def.fields.filter((field) => values[field.key])
+
+  const { steps, isLive } = useLatestRunSteps()
+  const step = steps?.find((s) => s.nodeId === id)
+  const isRunning = isLive && step?.status === "running"
+  const isFailed = step?.status === "failed"
 
   // A trigger starts the flow and takes no input, so it has no target handle.
   const hasTarget = kind !== "trigger"
@@ -21,7 +26,8 @@ function StepNodeComponent({ data, selected }: NodeProps<StepNodeType>) {
   return (
     <div
       className={cn(
-        "min-w-50 max-w-80 rounded-(--radius) border-2 border-border bg-card text-card-foreground",
+        "min-w-50 max-w-80 rounded-(--radius) border-2 bg-card text-card-foreground",
+        isRunning ? "border-blue-500" : isFailed ? "border-destructive" : "border-border",
         selected && "ring-2 ring-ring ring-offset-2 ring-offset-background"
       )}
     >
@@ -41,7 +47,7 @@ function StepNodeComponent({ data, selected }: NodeProps<StepNodeType>) {
             def.accent
           )}
         >
-          <Icon className="size-4" />
+          {isRunning ? <Spinner /> : <Icon className="size-4" />}
         </div>
         <span className="text-sm font-semibold">{title}</span>
       </div>

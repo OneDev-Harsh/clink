@@ -1,11 +1,16 @@
 import toposort from "toposort"
-import {logger, task} from "@trigger.dev/sdk"
+import {logger, metadata, task} from "@trigger.dev/sdk"
 
 import { Stagehand } from "@browserbasehq/stagehand"
 import {nodeExecutors} from "@/features/workflows/nodes/node-executors"
 import {interpolate} from "@/features/workflows/lib/interpolate"
 
 import {getWorkflow} from "@/features/workflows/data"
+
+export type RunStep = {
+    nodeId: string
+    status: "pending" | "running" | "done" | "failed"
+}
 
 export const runWorkflowTask = task({
     id: "run-workflow",
@@ -21,6 +26,13 @@ export const runWorkflowTask = task({
         const order = toposort.array(nodes.map(node => node.id), edges.map(edge => [edge.source, edge.target])).filter(id => connected.has(id))
 
         logger.log(`Running workflow ${workflowId} for org ${orgId} with ${nodes.length} nodes and ${edges.length} edges in order: ${order.join(", ")}`)
+
+        const steps: RunStep[] = order.map(nodeId => ({nodeId, status: "pending"}))
+        const stepById = new Map(steps.map(step => [step.nodeId, step]))
+        const publishSteps = () => {
+            metadata.set("steps", steps)
+        }
+        publishSteps()
 
         const outputs: Record<string, unknown> = {}
 
@@ -42,18 +54,33 @@ export const runWorkflowTask = task({
             const node = byId.get(id)
             logger.log(`Running node ${node?.data.title} (${node?.id}) of type ${node?.data.kind}`)
 
+            const step = stepById.get(id)!
+            step.status = "running"
+            publishSteps()
+            await metadata.flush()
+
             const executor = nodeExecutors[node!.data.type]
             if(executor){
                 const values = Object.fromEntries(
                     Object.entries(node!.data.values).map(([key, value]) => [key, interpolate(value, outputs)])
                 )
-                const result = await executor({values, getStagehand})
-                if(result !== undefined) outputs[id] = result
+                try {
+                    const result = await executor({values, getStagehand})
+                    if(result !== undefined) outputs[id] = result
+                } catch(error){
+                    step.status = "failed"
+                    publishSteps()
+                    await metadata.flush()
+                    throw error
+                }
             }
+
+            step.status = "done"
+            publishSteps()
         }
 
         await stagehand?.close()
 
-        return {steps: order.length}
+        return {steps}
     },
 })
