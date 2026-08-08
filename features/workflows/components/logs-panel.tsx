@@ -1,6 +1,7 @@
 "use client"
 
 import prettyMs from "pretty-ms"
+import { format } from "date-fns"
 
 import { Spinner } from "@/components/ui/spinner"
 import { cn } from "@/lib/utils"
@@ -102,7 +103,9 @@ function RunItem({
     <div>
       <div className="flex items-center gap-2 px-3 py-1.5 text-xs text-muted-foreground">
         <RunStatus run={run} />
-        <span className="truncate font-medium">Run {run.id.slice(0, 8)}</span>
+        <span className="min-w-0 truncate font-medium tabular-nums">
+          {format(run.createdAt, "MMM d, yyyy, h:mm a")}
+        </span>
         {!run.isExecuting && !run.isQueued && run.durationMs > 0 && (
           <span className="ml-auto shrink-0 tabular-nums">
             {prettyMs(run.durationMs)}
