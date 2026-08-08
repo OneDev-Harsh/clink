@@ -3,6 +3,7 @@ import {logger, task} from "@trigger.dev/sdk"
 
 import { Stagehand } from "@browserbasehq/stagehand"
 import {nodeExecutors} from "@/features/workflows/nodes/node-executors"
+import {interpolate} from "@/features/workflows/lib/interpolate"
 
 import {getWorkflow} from "@/features/workflows/data"
 
@@ -20,6 +21,8 @@ export const runWorkflowTask = task({
         const order = toposort.array(nodes.map(node => node.id), edges.map(edge => [edge.source, edge.target])).filter(id => connected.has(id))
 
         logger.log(`Running workflow ${workflowId} for org ${orgId} with ${nodes.length} nodes and ${edges.length} edges in order: ${order.join(", ")}`)
+
+        const outputs: Record<string, unknown> = {}
 
         let stagehand: Stagehand | undefined
         const getStagehand = async () => {
@@ -40,7 +43,13 @@ export const runWorkflowTask = task({
             logger.log(`Running node ${node?.data.title} (${node?.id}) of type ${node?.data.kind}`)
 
             const executor = nodeExecutors[node!.data.type]
-            if(executor) await executor({values: node!.data.values, getStagehand})
+            if(executor){
+                const values = Object.fromEntries(
+                    Object.entries(node!.data.values).map(([key, value]) => [key, interpolate(value, outputs)])
+                )
+                const result = await executor({values, getStagehand})
+                if(result !== undefined) outputs[id] = result
+            }
         }
 
         await stagehand?.close()

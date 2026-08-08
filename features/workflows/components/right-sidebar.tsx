@@ -11,6 +11,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -27,6 +28,7 @@ import { cn } from "@/lib/utils"
 
 import { deleteWorkflowAction, runWorkflowAction } from "@/features/workflows/lib/actions"
 import {validateGraph} from "@/features/workflows/lib/validate-graph"
+import { useUpstreamConnections } from "@/features/workflows/hooks/use-upstream-connections"
 
 import {
   nodeRegistry,
@@ -122,6 +124,14 @@ function FieldInput({
 // The Editor tab: one input per field on the selected node, or an empty state.
 function Inspector({ node }: { node: StepNodeType | undefined }) {
   const {updateNodeData} = useReactFlow<StepNodeType>()
+  const connections = useUpstreamConnections(node)
+  const [lastEditedField, setLastEditedField] = useState<string | undefined>()
+  const [prevNodeId, setPrevNodeId] = useState(node?.id)
+
+  if (node && node.id !== prevNodeId) {
+    setPrevNodeId(node.id)
+    setLastEditedField(undefined)
+  }
 
   if (!node) {
     return (
@@ -133,6 +143,15 @@ function Inspector({ node }: { node: StepNodeType | undefined }) {
 
   const { type, title, values } = node.data
   const def: NodeDefinition = nodeRegistry[type]
+
+  const insertToken = (token: string) => {
+    const fieldKey = lastEditedField ?? def.fields[0]?.key
+    if (!fieldKey) return
+    updateNodeData(node.id, {
+      ...node.data,
+      values: { ...node.data.values, [fieldKey]: (values[fieldKey] ?? "") + token },
+    })
+  }
 
   return (
     <Section title={title} icon={<NodeIcon type={type} />}>
@@ -150,11 +169,33 @@ function Inspector({ node }: { node: StepNodeType | undefined }) {
                 field={field}
                 value={values[field.key] ?? ""}
                 onChange={(value) => {
+                  setLastEditedField(field.key)
                   updateNodeData(node.id, { ...node.data, values: { ...node.data.values, [field.key]: value } })
                 }}
               />
             </div>
           ))
+        )}
+
+        {connections.length > 0 && (
+          <div className="flex flex-col gap-1.5 border-t border-border pt-3">
+            <Label className="text-xs">Connections</Label>
+            <div className="flex flex-wrap gap-1.5">
+              {connections.map((connection) => (
+                <Badge
+                  key={connection.token}
+                  asChild
+                  variant="outline"
+                  className="cursor-pointer hover:bg-muted hover:text-muted-foreground"
+                >
+                  <button type="button" onClick={() => insertToken(connection.token)}>
+                    <NodeIcon type={connection.type} className="size-4" />
+                    {connection.label}
+                  </button>
+                </Badge>
+              ))}
+            </div>
+          </div>
         )}
       </div>
     </Section>
